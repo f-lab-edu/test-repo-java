@@ -1,0 +1,46 @@
+# Java
+*.class
+*.log
+
+# Compiled files
+target/
+build/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code (optional)
+.vscode/
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.tmp
+*.swp
+
+# Lombok
+*.lombok.config
+
+# Environment files (optional)
+.env
+.env.*
+
+# H2 DB (optional, 로컬 파일 DB 사용 시)
+*.h2.db
+
+# 기타
+*.jar
+*.war
+*.zip
