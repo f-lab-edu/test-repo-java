@@ -10,7 +10,7 @@ build/
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
 **/build/
-
+git push --set-upstream origin feature/init
 # IntelliJ IDEA
 .idea/
 *.iml
