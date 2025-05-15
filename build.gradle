@@ -26,6 +26,10 @@ repositories {
 dependencies {
 	//MySql
 	implementation 'mysql:mysql-connector-java:8.0.33'
+	//Spring Acturator 설정
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	//prometheus 설정
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
