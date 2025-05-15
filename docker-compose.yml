@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "123123"
+      MYSQL_DATABASE: products
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - product_network
+
+  product-api-1:
+    build:
+      context: .
+    container_name: product-api-1
+    ports:
+      - "8081:8080"
+    environment:
+      - INSTANCE_NAME=API-1
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/products
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123123
+    networks:
+      - product_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  product_network:
+    driver: bridge

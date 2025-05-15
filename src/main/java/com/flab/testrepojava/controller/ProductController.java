@@ -17,6 +17,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @GetMapping({"/"})
+    public String healthCheck() {
+        return "Product API is running!";
+    }
+
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll() {
         List<ProductResponse> products = productService.findAll();
