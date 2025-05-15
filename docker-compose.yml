@@ -35,6 +35,23 @@ services:
       mysql:
         condition: service_healthy
 
+  product-api-2:
+    build:
+      context: .
+    container_name: product-api-2
+    ports:
+      - "8082:8080"
+    environment:
+      - INSTANCE_NAME=API-2
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/products
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123123
+    networks:
+      - product_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 networks:
   product_network:
     driver: bridge
