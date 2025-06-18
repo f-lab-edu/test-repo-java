@@ -38,6 +38,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.findById(id));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ProductResponse> getByName(@RequestParam("name") String name) {
+        return ResponseEntity.ok(productService.findByName(name));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable("id") Long id, @RequestBody ProductRequest request) {
         return ResponseEntity.ok(productService.update(id, request));
