@@ -1,0 +1,26 @@
+# prometheus/prometheus.yml
+global:
+  scrape_interval: 5s  # 메트릭 수집 주기 (기본 15s → 5s로 변경)
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+#      - targets: ['3.37.88.143:9113']
+
+  - job_name: 'product-api'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+#      - targets: ['product-api-1:8080']
+#      - targets: ['product-api-1:8080', 'product-api-2:8080']
+#      - targets: ['product-api-1:8080', 'product-api-2:8080', 'product-api-3:8080']
+      - targets: ['43.203.182.53:8080']
+#      - targets: ['13.124.56.23:8080', '3.39.177.57:8081', '13.209.12.117:8082']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: [ 'cadvisor:8080' ]
