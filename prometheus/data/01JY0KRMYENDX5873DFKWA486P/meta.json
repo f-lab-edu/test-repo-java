@@ -1,0 +1,17 @@
+{
+	"ulid": "01JY0KRMYENDX5873DFKWA486P",
+	"minTime": 1750209103884,
+	"maxTime": 1750212000000,
+	"stats": {
+		"numSamples": 163775,
+		"numSeries": 600,
+		"numChunks": 1207
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01JY0KRMYENDX5873DFKWA486P"
+		]
+	},
+	"version": 1
+}

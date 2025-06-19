@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,5 +54,11 @@ public class ProductService implements ProductServiceImp {
     @Override
     public void delete(Long id) {
         productRepository.deleteById(id);
+    }
+
+    public ProductResponse findByName(String name) {
+        Product product = productRepository.findByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        return productMapper.toResponse(product);
     }
 }

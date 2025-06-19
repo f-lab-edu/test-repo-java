@@ -17,6 +17,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @GetMapping({"/"})
+    public String healthCheck() {
+        return "Product API is running!";
+    }
+
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll() {
         List<ProductResponse> products = productService.findAll();
@@ -31,6 +36,11 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(productService.findById(id));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ProductResponse> getByName(@RequestParam("name") String name) {
+        return ResponseEntity.ok(productService.findByName(name));
     }
 
     @PutMapping("/{id}")
