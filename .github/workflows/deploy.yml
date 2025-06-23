@@ -25,10 +25,6 @@ jobs:
             ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
 
       - name: Deploy to EC2 via SSH
-        env:
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
             docker rm -f product-api || true
@@ -37,8 +33,8 @@ jobs:
 
             docker run -d --name product-api -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
-              -e SPRING_DATASOURCE_USERNAME="$SPRING_DATASOURCE_USERNAME" \
-              -e SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
+              -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
+              -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
               miiniiidi/product-api:latest
           EOF
