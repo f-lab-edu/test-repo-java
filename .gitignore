@@ -45,3 +45,20 @@ logs/
 *.jar
 *.war
 *.zip
+
+
+# Prometheus 전체 폴더 무시하되 설정 파일은 포함
+prometheus/*
+!prometheus/prometheus.yml
+
+# 불필요한 문서
+HELP.md
+
+# Nginx 관련 설정
+nginx/
+
+
+docker-compose.yml
+docker-compose-copy.yml
+product_dump.sql
+
