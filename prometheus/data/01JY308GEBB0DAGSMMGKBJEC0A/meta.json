@@ -1,0 +1,17 @@
+{
+	"ulid": "01JY308GEBB0DAGSMMGKBJEC0A",
+	"minTime": 1750257383884,
+	"maxTime": 1750262400000,
+	"stats": {
+		"numSamples": 926233,
+		"numSeries": 1003,
+		"numChunks": 7302
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01JY308GEBB0DAGSMMGKBJEC0A"
+		]
+	},
+	"version": 1
+}

@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "products")
+@Table(name = "products", indexes = {
+        @Index(name = "idx_products_name", columnList = "name")
+})
 public class Product {
 
     @Id
