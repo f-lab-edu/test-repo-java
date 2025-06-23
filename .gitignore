@@ -1,0 +1,7 @@
+# .gitignore 파일에 다음 내용 추가
+.DS_Store
+.gradle/
+build/
+out/
+.idea/
+prometheus/data/
