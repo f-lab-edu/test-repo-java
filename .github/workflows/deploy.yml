@@ -18,9 +18,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Copy jar to EC2
+      - name: Copy files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa \
+          scp -o StrictHostKeyChecking=no \
             docker-compose.yml \
             ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
 
@@ -42,5 +42,4 @@ jobs:
               -e SPRING_DATASOURCE_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
               miiniiidi/product-api:latest
           EOF
-
 
