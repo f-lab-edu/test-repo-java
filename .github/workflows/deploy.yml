@@ -45,8 +45,13 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key_path: ./private_key
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/product-api:latest
-            docker stop product-api || true
-            docker rm product-api || true
-            docker run -d --name product-api -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/product-api:latest
+  docker pull ${{ secrets.DOCKER_USERNAME }}/product-api:latest
+  docker stop product-api || true
+  docker rm product-api || true
+  docker run -d --name product-api -p 8080:8080 \
+    -e SPRING_PROFILES_ACTIVE=prod \
+    -e SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} \
+    -e SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} \
+    -e SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} \
+    ${{ secrets.DOCKER_USERNAME }}/product-api:latest
 
