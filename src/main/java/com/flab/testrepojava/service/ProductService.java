@@ -75,7 +75,7 @@ public class ProductService implements ProductServiceImp {
                 .collect(Collectors.toList());
     }
 
-    @CacheEvict(value = "productSearch", key = "#p0")
+    @CacheEvict(value = "productSearch", key = "p0")
     public void evictSearchCache(String name) {
         log.info(">> 캐시 삭제: {}", name);
     }

@@ -48,12 +48,6 @@ public class ProductController {
         return productService.searchByName(name);
     }
 
-    @DeleteMapping("/cache/delete")
-    public ResponseEntity<String> deleteProductCache(@RequestParam("name") String name) {
-        productService.evictSearchCache(name);
-        return ResponseEntity.ok("캐시 삭제 완료: " + name);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable("id") Long id, @RequestBody ProductRequest request) {
         return ResponseEntity.ok(productService.update(id, request));
