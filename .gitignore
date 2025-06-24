@@ -42,7 +42,6 @@ logs/
 *.h2.db
 
 # 기타
-*.jar
 *.war
 *.zip
 
