@@ -20,7 +20,7 @@ public class RedisCacheConfig {
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(1)) //TTL 설정 (1분)
+                .entryTtl(Duration.ofMinutes(10)) //TTL 설정 (1분)
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
