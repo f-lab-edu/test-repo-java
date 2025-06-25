@@ -17,8 +17,8 @@ services:
       timeout: 10s
     networks:
       - product_network
-#    cpus: 1.5     # 최대 Docker CPU 할당 내에서 사용
-#    mem_limit: 768m # 최대 Docker Memory 할당 내에서 사용
+  #    cpus: 1.5     # 최대 Docker CPU 할당 내에서 사용
+  #    mem_limit: 768m # 최대 Docker Memory 할당 내에서 사용
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -51,54 +51,54 @@ services:
         condition: service_healthy
 
 
-#  product-api-2:
-#    build:
-#      context: .
-#    container_name: product-api-2
-#    ports:
-#      - "8082:8080"
-#    environment:
-#      - INSTANCE_NAME=API-2
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/PRODUCT
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=123123
-#    networks:
-#      - product_network
-#    depends_on:
-#      mysql:
-#        condition: service_healthy
-#
-#  product-api-3:
-#    build:
-#      context: .
-#    container_name: product-api-3
-#    ports:
-#      - "8083:8080"
-#    environment:
-#      - INSTANCE_NAME=API-3
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/PRODUCT
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=123123
-#    networks:
-#      - product_network
-#    depends_on:
-#      mysql:
-#        condition: service_healthy
-#
-#  nginx:
-#    build:
-#      context: ./nginx
-#    container_name: nginx
-#    ports:
-#      - "80:80"
-#    depends_on:
-#      - product-api-1
-#      - product-api-2
-#      - product-api-3
-#    networks:
-#      - product_network
-#    cpus: 0.5          # CPU 0.5개 제한
-#    mem_limit: 256m  # 메모리 256MB 제한
+  #  product-api-2:
+  #    build:
+  #      context: .
+  #    container_name: product-api-2
+  #    ports:
+  #      - "8082:8080"
+  #    environment:
+  #      - INSTANCE_NAME=API-2
+  #      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/PRODUCT
+  #      - SPRING_DATASOURCE_USERNAME=root
+  #      - SPRING_DATASOURCE_PASSWORD=123123
+  #    networks:
+  #      - product_network
+  #    depends_on:
+  #      mysql:
+  #        condition: service_healthy
+  #
+  #  product-api-3:
+  #    build:
+  #      context: .
+  #    container_name: product-api-3
+  #    ports:
+  #      - "8083:8080"
+  #    environment:
+  #      - INSTANCE_NAME=API-3
+  #      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/PRODUCT
+  #      - SPRING_DATASOURCE_USERNAME=root
+  #      - SPRING_DATASOURCE_PASSWORD=123123
+  #    networks:
+  #      - product_network
+  #    depends_on:
+  #      mysql:
+  #        condition: service_healthy
+  #
+  #  nginx:
+  #    build:
+  #      context: ./nginx
+  #    container_name: nginx
+  #    ports:
+  #      - "80:80"
+  #    depends_on:
+  #      - product-api-1
+  #      - product-api-2
+  #      - product-api-3
+  #    networks:
+  #      - product_network
+  #    cpus: 0.5          # CPU 0.5개 제한
+  #    mem_limit: 256m  # 메모리 256MB 제한
 
   grafana:
     image: grafana/grafana:latest
@@ -122,17 +122,17 @@ services:
     networks:
       - product_network
 
-#  nginx-exporter:
-#    image: nginx/nginx-prometheus-exporter:latest
-#    container_name: nginx-exporter
-#    command:
-#      - '--nginx.scrape-uri=http://nginx/stub_status'
-#    ports:
-#      - "9113:9113"
-#    depends_on:
-#      - nginx
-#    networks:
-#      - product_network
+  #  nginx-exporter:
+  #    image: nginx/nginx-prometheus-exporter:latest
+  #    container_name: nginx-exporter
+  #    command:
+  #      - '--nginx.scrape-uri=http://nginx/stub_status'
+  #    ports:
+  #      - "9113:9113"
+  #    depends_on:
+  #      - nginx
+  #    networks:
+  #      - product_network
 
   redis:
     image: redis:7.2

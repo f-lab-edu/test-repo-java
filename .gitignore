@@ -56,8 +56,5 @@ HELP.md
 # Nginx 관련 설정
 nginx/
 
-
-docker-compose.yml
-docker-compose-copy.yml
 product_dump.sql
 
