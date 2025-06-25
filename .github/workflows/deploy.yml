@@ -61,5 +61,12 @@ jobs:
               -e SPRING_REDIS_HOST=redis-local \
               -e SPRING_REDIS_PORT=6379 \
               miiniiiiii/product-api:latest
+
+           docker rm -f redis-exporter || true
+           docker run -d --name redis-exporter \
+             -p 9121:9121 \
+             -e REDIS_ADDR=redis://redis-local:6379 \
+             --network host \
+             oliver006/redis_exporter
           EOF
 
