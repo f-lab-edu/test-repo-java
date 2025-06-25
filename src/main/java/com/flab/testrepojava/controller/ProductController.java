@@ -33,12 +33,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.save(request));
     }
 
-    @GetMapping("/search-by-name")
+    @GetMapping("/search")
     public List<ProductResponse> search(@RequestParam("name") String name) {
         return productService.searchByName(name);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(productService.findById(id));
     }
