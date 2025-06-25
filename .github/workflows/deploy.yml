@@ -58,6 +58,8 @@ jobs:
               -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
               -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
               -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+              -e SPRING_REDIS_HOST=localhost \
+              -e SPRING_REDIS_PORT=6379 \              
               miiniiiiii/product-api:latest
           EOF
 
