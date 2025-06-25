@@ -43,7 +43,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.findByName(name));
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search-by-name")
     public List<ProductResponse> search(@RequestParam("name") String name) {
         return productService.searchByName(name);
     }
