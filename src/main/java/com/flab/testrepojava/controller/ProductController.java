@@ -3,6 +3,7 @@ package com.flab.testrepojava.controller;
 
 import com.flab.testrepojava.dto.ProductRequest;
 import com.flab.testrepojava.dto.ProductResponse;
+import com.flab.testrepojava.metrics.ApiRequestCounter;
 import com.flab.testrepojava.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ApiRequestCounter apiRequestCounter;
 
     @GetMapping({"/"})
     public String healthCheck() {
@@ -25,6 +27,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll() {
         List<ProductResponse> products = productService.findAll();
+        apiRequestCounter.increment(); // 요청 수 카운트 증가
         return ResponseEntity.ok(products);
     }
 
