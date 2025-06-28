@@ -33,10 +33,6 @@ public class SlackNotifier {
         }
     }
 
-    @PostConstruct
-    public void testSlack() {
-        send("🚀 슬랙 알림 연동 테스트 완료!");
-    }
 
 }
 

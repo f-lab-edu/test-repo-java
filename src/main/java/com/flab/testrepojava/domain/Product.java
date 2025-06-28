@@ -23,6 +23,9 @@ public class Product {
     private int price;
     private int quantity;
 
+    @Version
+    private int version;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

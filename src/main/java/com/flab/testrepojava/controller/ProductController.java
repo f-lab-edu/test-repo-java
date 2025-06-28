@@ -19,11 +19,6 @@ public class ProductController {
     private final ProductService productService;
     private final ApiRequestCounter apiRequestCounter;
 
-    @GetMapping({"/"})
-    public String healthCheck() {
-        return "Product API is running!";
-    }
-
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll() {
         List<ProductResponse> products = productService.findAll();
@@ -60,6 +55,12 @@ public class ProductController {
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/decrease")
+    public ResponseEntity<String> decrease(@PathVariable("id") Long id, @RequestParam("amount") int amount) {
+        productService.decreaseQuantity(id, amount);
+        return ResponseEntity.ok("재고 감소 완료");
     }
 
 }

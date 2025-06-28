@@ -23,6 +23,8 @@ ALTER TABLE products ADD INDEX idx_products_name (name);
 SHOW INDEX FROM products;
 SHOW INDEX FROM products WHERE Column_name = 'name';
 
+UPDATE products SET quantity = 10 WHERE id = 1;
+
 
 
 

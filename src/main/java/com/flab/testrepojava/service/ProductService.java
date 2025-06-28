@@ -5,11 +5,17 @@ import com.flab.testrepojava.dto.ProductRequest;
 import com.flab.testrepojava.dto.ProductResponse;
 import com.flab.testrepojava.mapper.ProductMapper;
 import com.flab.testrepojava.repository.ProductRepository;
+import com.flab.testrepojava.slack.SlackNotifier;
 import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +27,7 @@ public class ProductService implements ProductServiceImp {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final SlackNotifier slackNotifier;
 
     @Override
     public ProductResponse save(ProductRequest request) {
@@ -79,4 +86,31 @@ public class ProductService implements ProductServiceImp {
     public void evictSearchCache(String name) {
         log.info(">> 캐시 삭제: {}", name);
     }
+
+    @Retryable(
+            value = {ObjectOptimisticLockingFailureException.class, IllegalStateException.class},
+            maxAttempts = 3,       // 최대 3번 시도
+            backoff = @Backoff(delay = 100) // 100ms 간격으로 재시도
+    )
+    @Transactional
+    public void decreaseQuantity(Long productId, int amount) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (product.getQuantity() < amount) {
+            throw new IllegalStateException("재고가 부족합니다.");
+        }
+        product.setQuantity(product.getQuantity() - amount);
+    }
+
+    //마지막 재시도 실패 시 호출됨
+    @Recover
+    public void recover(IllegalStateException e, Long productId, int amount) {
+        String message = String.format(
+                "❌ 재고 감소 실패 (낙관적 락 충돌) 상품 ID: %d 감소 수량: %d 에러: %s",
+                productId, amount, e.getMessage()
+        );
+        slackNotifier.send(message);
+    }
+
 }
