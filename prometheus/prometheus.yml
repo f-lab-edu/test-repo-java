@@ -31,3 +31,6 @@ scrape_configs:
 #      - targets: [ 'localhost:9121' ]
 #      - targets: [ '13.125.249.38:9121' ]
 #      - targets: [ '43.203.182.53:9121' ]
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['3.39.190.122:9104']

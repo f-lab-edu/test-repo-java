@@ -88,26 +88,33 @@ public class ProductService implements ProductServiceImp {
     }
 
     @Retryable(
-            value = {ObjectOptimisticLockingFailureException.class, IllegalStateException.class},
-            maxAttempts = 3,       // 최대 3번 시도
-            backoff = @Backoff(delay = 100) // 100ms 간격으로 재시도
+            value = {ObjectOptimisticLockingFailureException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 100)
     )
     @Transactional
     public void decreaseQuantity(Long productId, int amount) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (product.getQuantity() < amount) {
+            // 재고 부족은 재시도 의미가 없으므로 바로 알림 후 예외
+            String message = String.format(
+                    "❌ 재고 부족 - 상품 ID: %d, 요청 수량: %d, 현재 재고: %d",
+                    productId, amount, product.getQuantity()
+            );
+            slackNotifier.send(message);
             throw new IllegalStateException("재고가 부족합니다.");
         }
+
         product.setQuantity(product.getQuantity() - amount);
     }
 
-    //마지막 재시도 실패 시 호출됨
+    // 낙관적 락 재시도 끝에 실패 시 호출
     @Recover
-    public void recover(IllegalStateException e, Long productId, int amount) {
+    public void recover(ObjectOptimisticLockingFailureException e, Long productId, int amount) {
         String message = String.format(
-                "❌ 재고 감소 실패 상품 ID: %d 감소 수량: %d 에러: %s",
+                "🔁 낙관적 락 재시도 실패 - 상품 ID: %d, 수량: %d, 에러: %s",
                 productId, amount, e.getMessage()
         );
         slackNotifier.send(message);
