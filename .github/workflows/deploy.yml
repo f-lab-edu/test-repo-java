@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,7 +45,8 @@ jobs:
 
   deploy-ec2-1:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: build-and-push
+
     steps:
       - name: Set up SSH for EC2 #1
         uses: webfactory/ssh-agent@v0.5.4
@@ -66,74 +67,75 @@ jobs:
               miiniiiiii/product-api:latest
           EOF
 
-   deploy-ec2-2:
-     runs-on: ubuntu-latest
-     needs: deploy
-     steps:
-       - name: Set up SSH for EC2 #2
-         uses: webfactory/ssh-agent@v0.5.4
-         with:
-           ssh-private-key: ${{ secrets.EC2_SSH_KEY_2 }}
+  deploy-ec2-2:
+    runs-on: ubuntu-latest
+    needs: build-and-push
 
-       - name: Deploy to EC2 #2 (product-api-2 & product-api-3)
-         run: |
-           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST_2 }} << 'EOF'
+    steps:
+      - name: Set up SSH for EC2 #2
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY_2 }}
 
-           IMAGE_NAME=miiniiiiii/product-api:latest
+      - name: Deploy to EC2 #2 (product-api-2)
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST_2 }} << 'EOF'
+          IMAGE_NAME=miiniiiiii/product-api:latest
+          CONTAINER_NAME=product-api-2
+          PORT_MAPPING="-p 8081:8080"
 
-           deploy_container() {
-             CONTAINER_NAME=\$1
-             PORT_MAPPING=\$2
-
-            echo "🚀 배포 시작: \$CONTAINER_NAME (\$PORT_MAPPING)"
-
-            # 1. 컨테이너 존재하면 강제 종료 및 제거 시도
-            if docker ps -a --format '{{.Names}}' | grep -q "^\\\$CONTAINER_NAME\$"; then
-              echo "🔍 기존 컨테이너 발견 → PID 확인 중..."
-              PID=\$(docker inspect --format '{{.State.Pid}}' \$CONTAINER_NAME 2>/dev/null || echo "")
-              if [ -n "\$PID" ] && [ "\$PID" -gt 0 ]; then
-                echo "🔪 PID \$PID 강제 종료 시도"
-                sudo kill -9 \$PID || echo "⚠️ kill 실패 (무시)"
-              fi
-
-              echo "🧹 컨테이너 제거 시도"
-              docker rm -f \$CONTAINER_NAME || {
-                echo "❗ 삭제 실패 → Docker 재시작"
-                sudo systemctl restart docker
-                docker rm -f \$CONTAINER_NAME || echo "🚫 삭제 계속 실패 → 이름 바꿔서 실행"
-              }
+          if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            PID=$(docker inspect --format '{{.State.Pid}}' ${CONTAINER_NAME} 2>/dev/null || echo "")
+            if [ -n "$PID" ] && [ "$PID" -gt 0 ]; then
+              sudo kill -9 $PID || true
             fi
+            docker rm -f $CONTAINER_NAME || sudo systemctl restart docker
+          fi
 
-            # 2. 이미지 pull
-            echo "📦 최신 이미지 pull 중..."
-            docker pull \$IMAGE_NAME
+          docker pull $IMAGE_NAME
 
-            # 3. 컨테이너 실행
-            echo "🚀 컨테이너 실행 중..."
-            docker run -d --name \$CONTAINER_NAME \$PORT_MAPPING \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
-              -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
-              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
-              -e SLACK_WEBHOOK_URL="${{ secrets.SLACK_WEBHOOK_URL }}" \
-              \$IMAGE_NAME || {
-                echo "🔥 실행 실패 → 이름에 타임스탬프 추가"
-                docker run -d --name "\${CONTAINER_NAME}-\$(date +%s)" \$PORT_MAPPING \
-                  -e SPRING_PROFILES_ACTIVE=prod \
-                  -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
-                  -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
-                  -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
-                  -e SLACK_WEBHOOK_URL="${{ secrets.SLACK_WEBHOOK_URL }}" \
-                  \$IMAGE_NAME
-              }
+          docker run -d --name $CONTAINER_NAME $PORT_MAPPING \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
+            -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+            -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+            -e SLACK_WEBHOOK_URL="${{ secrets.SLACK_WEBHOOK_URL }}" \
+            $IMAGE_NAME
+          EOF
 
-            echo "✅ 배포 완료: \$CONTAINER_NAME"
-            echo
-          }
+  deploy-ec2-3:
+    runs-on: ubuntu-latest
+    needs: build-and-push
 
-          # 🔁 컨테이너 2개 배포 실행
-          deploy_container "product-api-2" "-p 8081:8080"
-          deploy_container "product-api-3" "-p 8082:8080"
+    steps:
+      - name: Set up SSH for EC2 #3
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY_3 }}
 
-        EOF
+      - name: Deploy to EC2 #3 (product-api-3)
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST_3 }} << 'EOF'
+          IMAGE_NAME=miiniiiiii/product-api:latest
+          CONTAINER_NAME=product-api-3
+          PORT_MAPPING="-p 8082:8080"
+
+          if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            PID=$(docker inspect --format '{{.State.Pid}}' ${CONTAINER_NAME} 2>/dev/null || echo "")
+            if [ -n "$PID" ] && [ "$PID" -gt 0 ]; then
+              sudo kill -9 $PID || true
+            fi
+            docker rm -f $CONTAINER_NAME || sudo systemctl restart docker
+          fi
+
+          docker pull $IMAGE_NAME
+
+          docker run -d --name $CONTAINER_NAME $PORT_MAPPING \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e SPRING_DATASOURCE_URL="${{ secrets.SPRING_DATASOURCE_URL }}" \
+            -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+            -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+            -e SLACK_WEBHOOK_URL="${{ secrets.SLACK_WEBHOOK_URL }}" \
+            $IMAGE_NAME
+          EOF
 
