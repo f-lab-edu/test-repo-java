@@ -3,6 +3,7 @@ package com.flab.testrepojava.service;
 import com.flab.testrepojava.domain.Product;
 import com.flab.testrepojava.dto.ProductRequest;
 import com.flab.testrepojava.dto.ProductResponse;
+import com.flab.testrepojava.interceptor.RetryMetricsService;
 import com.flab.testrepojava.mapper.ProductMapper;
 import com.flab.testrepojava.repository.ProductRepository;
 import com.flab.testrepojava.slack.SlackNotifier;
@@ -28,6 +29,7 @@ public class ProductService implements ProductServiceImp {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final SlackNotifier slackNotifier;
+    private final RetryMetricsService retryMetricsService;
 
     @Override
     public ProductResponse save(ProductRequest request) {
@@ -113,6 +115,7 @@ public class ProductService implements ProductServiceImp {
     // 낙관적 락 재시도 끝에 실패 시 호출
     @Recover
     public void recover(ObjectOptimisticLockingFailureException e, Long productId, int amount) {
+        retryMetricsService.countRetry(e, productId);  // 재시도 횟수 카운트
         String message = String.format(
                 "🔁 낙관적 락 재시도 실패 - 상품 ID: %d, 수량: %d, 에러: %s",
                 productId, amount, e.getMessage()

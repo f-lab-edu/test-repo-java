@@ -3,8 +3,6 @@ package com.flab.testrepojava.interceptor;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponseWrapper;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -41,13 +39,4 @@ public class MetricsFilter implements Filter {
         }
     }
 
-
-    public void countRetry(Exception e, Long productId) {
-        if (e instanceof ObjectOptimisticLockingFailureException || e instanceof IllegalStateException) {
-            registry.counter("product.retry.count",
-                    "exception", e.getClass().getSimpleName(),
-                    "productId", String.valueOf(productId)
-            ).increment();
-        }
-    }
 }
