@@ -1,16 +1,14 @@
 package com.flab.testrepojava.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProductRequest {
     private String name;
-    private int price;
-    private int quantity;
+    private Integer price;
+    private Integer quantity;
 }

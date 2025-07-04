@@ -29,12 +29,8 @@ public class MetricsFilter implements Filter {
 
             registry.counter("product_api_requests_total").increment();
 
-            if (status == 409) {
-                registry.counter("product_api_errors", "status", "409").increment();
-            } else if (status >= 400 && status < 500) {
-                registry.counter("product_api_errors", "status", "4xx").increment();
-            } else if (status >= 500) {
-                registry.counter("product_api_errors", "status", "5xx").increment();
+            if (status >= 400) {
+                registry.counter("product_api_errors", "status", String.valueOf(status)).increment();
             }
         }
     }

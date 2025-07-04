@@ -17,11 +17,10 @@ public class RetryMetricsService {
 
     public void countRetry(Exception e, Long productId) {
         log.info("🔁 [RETRY_METRIC] 재시도 카운트 기록 - 상품 ID: {}, 예외 타입: {}", productId, e.getClass().getSimpleName());
-        if (e instanceof ObjectOptimisticLockingFailureException || e instanceof IllegalStateException) {
-            meterRegistry.counter("product.retry.count",
-                    "exception", e.getClass().getSimpleName(),
-                    "productId", String.valueOf(productId)
-            ).increment();
-        }
+        String exceptionName = e.getClass().getSimpleName();
+        meterRegistry.counter("product_retry_count_total",
+                "exception", exceptionName,
+                "productId", String.valueOf(productId)
+        ).increment();
     }
 }
