@@ -20,14 +20,15 @@ public class Product {
     private Long id;
 
     private String name;
-    private int price;
-    private int quantity;
+    private Integer price;
+    private Integer quantity;
 
     @Version
     private int version;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
 
     @PrePersist
     public void prePersist() {

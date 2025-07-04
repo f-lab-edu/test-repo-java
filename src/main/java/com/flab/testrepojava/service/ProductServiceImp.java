@@ -1,10 +1,8 @@
 package com.flab.testrepojava.service;
 
-import com.flab.testrepojava.domain.Product;
 import com.flab.testrepojava.dto.ProductRequest;
 import com.flab.testrepojava.dto.ProductResponse;
 
-import java.util.Optional;
 
 public interface ProductServiceImp {
 
@@ -15,4 +13,5 @@ public interface ProductServiceImp {
     ProductResponse findById(Long id);
 
     void delete(Long id);
+
 }
