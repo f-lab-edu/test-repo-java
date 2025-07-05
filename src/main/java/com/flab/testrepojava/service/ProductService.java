@@ -132,6 +132,7 @@ public class ProductService implements ProductServiceImp {
             productRepository.save(product); // ⛔️ 이 시점에서 버전 충돌 발생 가능
         } catch (ObjectOptimisticLockingFailureException e) {
             // 충돌 감지
+            retryMetricsService.countRetryAttempt(e);
             System.out.println("Optimistic lock 실패: " + e.getMessage());
         }
 
@@ -158,7 +159,7 @@ public class ProductService implements ProductServiceImp {
         );
         log.error("🛑 Recover 실행됨 - {}", message);
         slackNotifier.send(message);
-        retryMetricsService.countRetry(e, productId);
+        retryMetricsService.countRetryFailure(e);
     }
 
 }
