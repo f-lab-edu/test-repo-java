@@ -1,9 +1,18 @@
 package com.flab.testrepojava.config;
 
+import com.flab.testrepojava.retry.RetryMetricsListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.support.RetryTemplate;
 
 @Configuration
-@EnableRetry
 public class RetryConfig {
+
+    @Bean
+    public RetryTemplate retryTemplate(RetryMetricsListener listener) {
+        RetryTemplate template = new RetryTemplate();
+        template.registerListener(listener);
+        return template;
+    }
+
 }
