@@ -20,7 +20,7 @@ scrape_configs:
 #      - targets: ['product-api-1:8080', 'product-api-2:8080']
 #      - targets: ['product-api-1:8080', 'product-api-2:8080', 'product-api-3:8080']
 #      - targets: ['43.203.182.53:8080']
-      - targets: ['54.180.132.216:8080', '3.34.5.255:8081', '3.38.182.88:8082']
+      - targets: ['54.180.132.216:8080', '43.200.5.74:8081', '43.202.45.4:8082']
 
   - job_name: 'cadvisor'
     static_configs:
