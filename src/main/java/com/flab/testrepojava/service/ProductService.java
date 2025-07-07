@@ -8,14 +8,11 @@ import com.flab.testrepojava.interceptor.RetryMetricsService;
 import com.flab.testrepojava.mapper.ProductMapper;
 import com.flab.testrepojava.repository.ProductRepository;
 import com.flab.testrepojava.slack.SlackNotifier;
-import jakarta.persistence.OptimisticLockException;
 import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.orm.jpa.JpaOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 public class ProductService implements ProductServiceImp {
 
     private final ProductRepository productRepository;
+    private final RedisLockService redisLockService;
     private final ProductMapper productMapper;
     private final SlackNotifier slackNotifier;
     private final RetryMetricsService retryMetricsService;
@@ -133,7 +132,7 @@ public class ProductService implements ProductServiceImp {
         } catch (ObjectOptimisticLockingFailureException e) {
             // 충돌 감지
             retryMetricsService.countRetryAttempt(e);
-            System.out.println("Optimistic lock 실패: " + e.getMessage());
+            log.error("Optimistic lock 실패: {}", e.getMessage());
         }
 
         // ⛔️ 저장 후 재고 부족이면 예외
@@ -159,7 +158,52 @@ public class ProductService implements ProductServiceImp {
         );
         log.error("🛑 Recover 실행됨 - {}", message);
         slackNotifier.send(message);
-        retryMetricsService.countRetryFailure(e);
+
     }
+
+    // 비관적 락 기반
+    @Transactional
+    public void decreaseQuantityWithPessimisticLock(Long productId, int amount) {
+        log.info("▶️ [PESSIMISTIC] 재고 감소 시작 - productId: {}, amount: {}", productId, amount);
+
+        Product product = productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        int before = product.getQuantity();
+        int after = before - amount;
+
+        if (after < 0) {
+            String message = String.format("❌ [PESSIMISTIC] 재고 부족 - 상품 ID: %d, 요청: %d, 현재: %d", productId, amount, before);
+            log.warn(message);
+            slackNotifier.send(message);
+            throw new OutOfStockException("재고가 부족합니다.");
+        }
+
+        product.setQuantity(after);
+
+        log.info("✅ [PESSIMISTIC] 재고 차감 완료 - 기존: {}, 최종: {}", before, after);
+    }
+
+    // Redisson 분산락
+    public void decreaseWithRedisLock(Long productId, int amount) {
+        String lockKey = "lock:product:" + productId;
+
+        redisLockService.executeWithLock(lockKey, 1, 3, TimeUnit.SECONDS, () -> {
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+            if (product.getQuantity() < amount) {
+                slackNotifier.send("❌ Redis 재고 부족 - ID: " + productId);
+                throw new OutOfStockException("재고 부족");
+            }
+
+            product.setQuantity(product.getQuantity() - amount);
+            productRepository.save(product);
+
+            log.info("🔐 Redis 락으로 재고 차감 완료 - id: {}, 남은 재고: {}", productId, product.getQuantity());
+            return null;
+        });
+    }
+
 
 }

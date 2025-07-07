@@ -3,6 +3,7 @@ package com.flab.testrepojava.controller;
 
 import com.flab.testrepojava.dto.ProductRequest;
 import com.flab.testrepojava.dto.ProductResponse;
+import com.flab.testrepojava.exception.OutOfStockException;
 import com.flab.testrepojava.metrics.ApiRequestCounter;
 import com.flab.testrepojava.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -57,10 +58,30 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    //낙관적락
     @PostMapping("/{id}/decrease")
     public ResponseEntity<String> decrease(@PathVariable("id") Long id, @RequestParam("amount") int amount) {
         productService.decreaseQuantity(id, amount);
         return ResponseEntity.ok("재고 감소 완료");
     }
+
+    //비관적락
+    @PostMapping("/{id}/decrease/pessimistic")
+    public ResponseEntity<String> decreaseQuantityPessimistic(@PathVariable("id") Long id, @RequestParam("amount") int amount) {
+        productService.decreaseQuantityWithPessimisticLock(id, amount);
+        return ResponseEntity.ok("재고 차감 완료 (비관적 락)");
+    }
+
+    //Redisson 분산락
+    @PostMapping("/{id}/decrease/redis")
+    public ResponseEntity<String> decreaseQuantityWithRedis(@PathVariable("id") Long id, @RequestParam("amount") int amount) {
+        try {
+            productService.decreaseWithRedisLock(id, amount);
+            return ResponseEntity.ok("재고 차감 완료 (Redis 락)");
+        } catch (OutOfStockException e) {
+            return ResponseEntity.ok("재고 부족");
+        }
+    }
+
 
 }
