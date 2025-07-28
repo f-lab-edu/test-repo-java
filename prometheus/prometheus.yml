@@ -36,3 +36,7 @@ scrape_configs:
     static_configs:
       - targets: ['3.39.190.122:9104']
       #- targets: ['localhost:9104']
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:5556']

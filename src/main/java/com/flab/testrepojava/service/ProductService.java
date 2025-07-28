@@ -6,6 +6,7 @@ import com.flab.testrepojava.dto.ProductResponse;
 import com.flab.testrepojava.exception.OutOfStockException;
 import com.flab.testrepojava.interceptor.RetryMetricsService;
 import com.flab.testrepojava.mapper.ProductMapper;
+import com.flab.testrepojava.redis.RedisLockService;
 import com.flab.testrepojava.repository.ProductRepository;
 import com.flab.testrepojava.slack.SlackNotifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -142,7 +143,7 @@ public class ProductService implements ProductServiceImp {
                     productId, amount, product.getQuantity()
             );
             log.warn("{}", message);
-            slackNotifier.send(message);
+            slackNotifier.queueMessage(message);
             throw new OutOfStockException("재고가 부족합니다.");
         }
 
@@ -157,7 +158,7 @@ public class ProductService implements ProductServiceImp {
                 productId, amount, e.getMessage()
         );
         log.error("🛑 Recover 실행됨 - {}", message);
-        slackNotifier.send(message);
+        slackNotifier.queueMessage(message);
 
     }
 
@@ -175,7 +176,7 @@ public class ProductService implements ProductServiceImp {
         if (after < 0) {
             String message = String.format("❌ [PESSIMISTIC] 재고 부족 - 상품 ID: %d, 요청: %d, 현재: %d", productId, amount, before);
             log.warn(message);
-            slackNotifier.send(message);
+            slackNotifier.queueMessage(message);
             throw new OutOfStockException("재고가 부족합니다.");
         }
 
@@ -193,7 +194,7 @@ public class ProductService implements ProductServiceImp {
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
             if (product.getQuantity() < amount) {
-                slackNotifier.send("❌ Redis 재고 부족 - ID: " + productId);
+                slackNotifier.queueMessage("❌ Redis 재고 부족 - ID: " + productId);
                 throw new OutOfStockException("재고 부족");
             }
 

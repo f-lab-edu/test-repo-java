@@ -18,7 +18,7 @@ public class ApiRequestCounter {
     public void increment() {
         int count = requestCount.incrementAndGet();
         if (count >= 10) {
-            slackNotifier.send("API 요청이 10건 이상 발생했습니다! 현재 : " + count);
+            slackNotifier.queueMessage("API 요청이 10건 이상 발생했습니다! 현재 : " + count);
             requestCount.set(0); //알람 후 카운터 초기화
         }
     }

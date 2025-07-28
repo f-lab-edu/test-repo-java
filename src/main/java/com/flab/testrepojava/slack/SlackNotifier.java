@@ -4,16 +4,17 @@ package com.flab.testrepojava.slack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @Slf4j
@@ -22,31 +23,41 @@ public class SlackNotifier {
 
     private final WebClient slackWebClient;
 
-    private static final int MAX_RETRIES = 3;
-    private static final Duration BACKOFF_DURATION = Duration.ofSeconds(2);
+    @Value("${slack.webhook.url}")
+    private String slackWebhookUrl;
 
-    public void send(String message) {
-        Map<String, String> payload = Map.of("text", message);
+    // 메시지를 임시 저장할 큐
+    private final Queue<String> messageQueue = new ConcurrentLinkedQueue<>();
 
-        slackWebClient.post()
-                .uri(System.getenv("SLACK_WEBHOOK_URL"))  // 또는 @Value("${SLACK_WEBHOOK_URL}")
-                .bodyValue(payload)
-                .retrieve()
-                .onStatus(HttpStatus.TOO_MANY_REQUESTS::equals, clientResponse -> {
-                    log.warn("🚫 Slack 전송 제한(429 Too Many Requests)");
-                    return Mono.error(new RuntimeException("Slack rate limited"));
-                })
-                .bodyToMono(Void.class)
-                .retryWhen(
-                        Retry.backoff(MAX_RETRIES, BACKOFF_DURATION)
-                                .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests)
-                                .onRetryExhaustedThrow((retryBackoffSpec, signal) ->
-                                        new RuntimeException("Slack 전송 재시도 실패"))
-                )
-                .doOnError(e -> log.error("🔥 Slack 전송 실패: {}", e.getMessage()))
-                .subscribe(); // 비동기 호출 실행
+    // 외부에서 호출하는 메서드
+    public void queueMessage(String message) {
+        messageQueue.add(message);
     }
 
+    // 2분마다 한 번씩 슬랙 전송 (초기 10초 지연 후 시작)
+    @Scheduled(initialDelay = 10_000, fixedDelay = 120_000)
+    public void sendBatchMessages() {
+        if (messageQueue.isEmpty()) return;
 
+        StringBuilder combinedMessage = new StringBuilder("📢 Slack 알림 모음\n");
+
+        while (!messageQueue.isEmpty()) {
+            String message = messageQueue.poll();
+            combinedMessage.append("\n---\n").append(message);
+        }
+
+        slackWebClient.post()
+                .uri(slackWebhookUrl)
+                .bodyValue(Map.of("text", combinedMessage.toString()))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> {
+                    log.warn("🚫 Slack 전송 실패 - 상태 코드: {}", response.statusCode().value());
+                    return Mono.empty();
+                })
+                .bodyToMono(Void.class)
+                .doOnSuccess(unused -> log.info("✅ Slack 메시지 전송 성공"))
+                .doOnError(error -> log.error("🔥 Slack 전송 중 예외 발생", error))
+                .subscribe();
+    }
 }
 
